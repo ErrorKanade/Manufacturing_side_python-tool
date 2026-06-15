@@ -1,0 +1,2 @@
+# Manufacturing_side_python-tool
+本仓库主要收集本人在PDCA工厂端所编写的效率提升小工具
