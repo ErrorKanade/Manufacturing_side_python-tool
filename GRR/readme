@@ -1,0 +1,60 @@
+📈 全自動量測系統分析工具 (Automated MSA / GRR Tool)本項目是一款專為品質工程與產線測試設計的 全自動 MSA (Gage R&R) 分析與可視化工具。
+它能夠自動識別測試數據 CSV 檔案，動態定位條碼（SerialNumber）與測試項（Parametric Items），精準計算量具重複性（sigma_{error}）與產品變異（igma_{part}），
+並一鍵生成高畫質的 PDF 診斷報告、PNG 趨勢圖卡 以及具備色彩高亮條件格式的 Excel 數據總表。
+🚀 核心特性智能標頭動態定位（Zero-Configuration）：內置二維矩陣搜索算法，自動在 CSV 前 150 行與前 50 列中動態尋找 SerialNumber、Parametric、Upper Limit、Lower Limit 的坐標。
+數字起始行自動探測：通過逐行嘗試（float() 轉換校驗）自動識別真實測試數據的起始行（Data Start Row），完美兼容各種帶有複雜前置信息的產線報告格式。
+高標準 MSA / GRR 數學統計：自動根據 SN 進行分組，計算測試項的量具重複性標準差 sigma_{error}（Repeatability）與產品本身的標準差sigma_{part}（Part-to-Part Variation）。
+基於公差帶（Tolerance = USL - LSL）自動計算
+
+遵循行業通用標準：PTR < 30% 判定為 PASS（量測系統合格），否則判定為 FAIL。
+三合一多維數據視覺化（Matplotlib / Seaborn）：每個測試項自動生成一張包含三個區塊的專業診斷圖（A4 比例）：
+區塊一（趨勢線圖）：動態觀測同一顆產品（SN）在不同測試次數（Trial）下的波動走勢。
+區塊二（箱線+散點圖）：結合 Boxplot 與 Stripplot 快速捕捉各個產品量測值的離散程度。
+規格線（Limits）：自動在圖表中繪製紅色虛線公差邊界（USL / LSL）。區塊三（內嵌統計表）：圖表底部直接內嵌規格、PTR 數據與判定結果，並根據 PASS / FAIL 自動切換綠/紅背景。工
+業級雙重導出機制：多頁面 PDF 報告：單個 CSV 的所有測試項將依序打包進同一個 .pdf 檔案中，方便翻閱。
+獨立 PNG 圖檔：同時將各測試項解壓導出為獨立的圖片，存放在專屬操作目錄中，便於簡報（PPT）引用。
+自動化彩色 Excel 彙總看板：調用 xlsxwriter 引擎自動對接多檔案批處理。
+內置條件格式（Conditional Formatting）：自動將 FAIL 或 PTR > 30% 的單元格高亮為淺紅底深紅字，PASS 標記為淺綠底深綠字。
+自動計算並優化每列的寬度（Auto-fit 列寬），告別數據被遮擋的困擾。
+
+🛠️ 架構與數據流本工具支持「單檔案分析」與「資料夾批量分析」雙模式：[使用者輸入: 路徑/拖入文件]
+       │
+       ├──► 若為 CSV 文件 ──► 執行單一文件 MSA 分析
+       └──► 若為 資料夾   ──► 自動遍歷內部所有 *.csv 檔案
+                │
+                ├──► 1. 讀取並動態定位 (SN / Limit / Parametric)
+                ├──► 2. 數據清洗與計算 (σ_error, σ_part, PTR%)
+                ├──► 3. 繪製圖表並寫入 PdfPages 與 獨立 PNG
+                └──► 4. 彙總所有數據 ──► 生成彩色 Excel 總表
+📦 環境依賴在運行本工具之前，請確保環境中已安裝 Python 3.8+ 以及以下依賴庫：
+數據處理：pandas、numpy
+繪圖與可視化：matplotlib、seaborn
+高級 Excel 導出：xlsxwriter
+
+可以使用以下命令快速安裝：Bashpip install pandas numpy matplotlib seaborn xlsxwriter
+
+📂 輸出目錄規範運行工具後，系統會自動在 CSV 檔案同級目錄下創建關聯結果，組織結構如下：Plaintext📁 你的工作資料夾/
+│
+├── 📄 Test_Data_Station1.csv          # 原始產線量測數據 CSV
+├── 📄 Test_Data_Station1_MSA_Report.pdf # 自動生成的該站位多頁 PDF 報告
+│
+└── 📁 Test_Data_Station1_MSA_Plots/   # 自動創建的 PNG 圖片文件夾
+│     ├── 📄 TestItem_Voltage_MSA.png  # 測試項 A 的診斷圖卡
+│     ├── 📄 TestItem_Current_MSA.png  # 測試項 B 的診斷圖卡
+│     └── ...
+│
+└── 📄 MSA_Summary_Report.xlsx         # 全自動生成的彩色 Excel 彙總看板（包含所有站位數據）
+🏃 使用說明在終端中切換至腳本所在目錄，運行以下命令啟動工具：Bashpython "MSA_Batch_Generator.py"
+控制台將顯示歡迎界面：Plaintext
+========================================
+          GRR 批量生成    
+========================================
+>>> 請將【資料夾】或【單個 CSV】拖入，按回車：
+將你的數據資料夾或單個 CSV 檔案直接拖動到終端窗口中，然後按下 Enter。
+腳本會開始自動處理，並實時顯示進度：
+Plaintext
+[1/3] 處理中: Test_Data_Station1.csv
+[2/3] 處理中: Test_Data_Station2.csv
+...
+>>> [Success] 彩色匯總表已生成: /path/to/MSA_Summary_Report.xlsx
+所有任務已完成，按回車退出...
